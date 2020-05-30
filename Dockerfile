@@ -15,4 +15,4 @@ ENV BUNDLE_PATH /app-gems
 # Copia nosso código para dentro do container
 COPY . .
 # Roda nosso servidor
-CMD rackup config.ru -o 0.0.0.0
+# CMD rackup config.ru -o 0.0.0.0
