@@ -1,35 +1,32 @@
 require 'rest-client'
+require './app/errors/errors.rb'
 
 module TranslateBot
     class TranslateService
         def initialize(params)
             @text = params["text"]
-            @lang = params["lang"]
-            @key = "trnsl.1.1.20200527T071651Z.274e2302ab11a94e.7c4dac2023bc229cd538fcc043e968280a95d5cf"
+            @source_lang = params["source_lang"]
+            @target_lang = params["target_lang"]
+            key = "trnsl.1.1.20200527T071651Z.274e2302ab11a94e.7c4dac2023bc229cd538fcc043e968280a95d5cf"
+            @url = "https://translate.yandex.net/api/v1.5/tr.json/translate?key=#{key}&text=#{URI.encode_www_form_component(@text)}&lang=#{@source_lang}-#{@target_lang}"
         end
 
         def call
-            if @text == nil || @text == '' || @text == ' '
-                return 'Informe algum texto para traduzir.'
-            end
-            if @lang == nil || @lang == '' || @lang == ' '
-                return 'Informe o idioma.'
-            end
-            language = nil
-            if @lang.upcase == "INGLES" || @lang.upcase == "INGLÊS" || @lang.upcase == "ING"
-                language = "pt-en"
-            elsif @lang.upcase == "PORTUGUES" || @lang.upcase == "PORTUGUÊS" || @lang.upcase == "PORTUGUES-BR" || @lang.upcase == "PORTUGUÊS-BR"
-                language = "en-pt"
-            end
-
-            if language == nil 
-                return 'Por favor entre com um idioma valido'
-            end    
-            @url = "https://translate.yandex.net/api/v1.5/tr.json/translate?key=#{@key}&lang=#{language}"
-            res = RestClient.get(@url)
-            val = JSON.parse(res.body)['text'][0].to_s
-
-            response = "O termo #{@text} traduzido para #{lang} é: #{val}"
+            message = "Falta algum dos parametros para tradução: 1- Texto a ser traduzido, 2- idioma de origem, 3- idioma final"
+            
+            response = JSON.parse(RestClient.post @url, {}, {'Accept' => '*/*', 'Content-Type' => 'application/x-www-form-urlencoded'})
+            code = response['code']
+            case code
+                    when 400
+                        return message
+                    when 401, 402
+                        raise Errors::ErrorComunication.new('Error when trying to communicate with API.')
+                    when 413
+                        raise Errors::ErrorTextLong.new("A text #{@text} exceed a 10.000 characters.")
+                    when 200
+                        return response['text'][0]
+                    end        
+            
 
         end
     end    
