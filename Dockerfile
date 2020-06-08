@@ -8,7 +8,7 @@ RUN mkdir -p $INSTALL_PATH
 
 WORKDIR $INSTALL_PATH
 
-COPY Gemfile ./
+COPY Gemfile Gemfile.lock ./
 
 RUN bundle install
 
