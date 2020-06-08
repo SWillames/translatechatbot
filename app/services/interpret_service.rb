@@ -2,10 +2,8 @@ class InterpretService
 
     def self.call action, params
         case action
-        when 'get_languages'
-            TranslateModule::LanguageAvailable.new().call()
         when 'translate'
-            TranslateModule::TranslateService.new(params).call()
+            TranslateBot::TranslateService.new(params).call()
         when 'help'
             HelpService.call()
         else
